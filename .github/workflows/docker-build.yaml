@@ -4,22 +4,32 @@ on:
   pull_request:
     paths:
       - 'runner/**'
+      - 'btc/**'
   push:
     branches:
       - main
     paths:
       - 'runner/**'
+      - 'btc/**'
   schedule:
     - cron: '0 6 * * 1' # Every Monday at 06:00 UTC
 
 jobs:
   build-and-push:
     if: github.event_name != 'schedule' || github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image: [runner, btc]
+    name: ${{ matrix.image }}
+    # runs-on: ubuntu-latest
+    runs-on: ubicloud-standard-2
     permissions:
       contents: read
       packages: write
-
+    concurrency:
+      group: ${{ matrix.image }}
+      cancel-in-progress: false
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -38,7 +48,7 @@ jobs:
         id: tag
         run: |
           REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          IMAGE_NAME=ghcr.io/$REPO_LOWER/runner
+          IMAGE_NAME=ghcr.io/$REPO_LOWER/${{ matrix.image }}
 
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             TAG=${{ github.sha }}
@@ -51,8 +61,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v6
         with:
-          context: ./runner
-          file: ./runner/Dockerfile
+          context: ./${{ matrix.image }}
+          file: ./${{ matrix.image }}/Dockerfile
           push: true
           tags: ${{ steps.tag.outputs.image }}
 
