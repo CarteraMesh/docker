@@ -57,7 +57,7 @@ COPY --from=builder /usr/bin/ord /usr/bin/ord
 RUN groupadd --gid ${GID} bitcoin \
   && useradd --create-home --no-log-init -u ${UID} -g ${GID} bitcoin \
   && apt-get update -y \
-  && apt-get install -y curl gosu \
+  && apt-get install -y curl  \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
   && chown -R bitcoin:bitcoin /home/bitcoin \
