@@ -1,10 +1,12 @@
 name: Build and Push Docker Image
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'runner/**'
       - 'btc/**'
+      - 'rsync/**'
   push:
     branches:
       - main
@@ -21,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [runner, btc]
+        image: [runner, btc, rsync]
     name: ${{ matrix.image }}
     # runs-on: ubuntu-latest
     runs-on: ubicloud-standard-2
