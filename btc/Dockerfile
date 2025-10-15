@@ -11,7 +11,7 @@ RUN groupadd --gid ${GID} bitcoin \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 ENV TARGETPLATFORM=x86_64-linux-gnu
-ENV BITCOIN_VERSION=29.0
+ENV BITCOIN_VERSION=30.0
 ENV BITCOIN_DATA=/home/bitcoin/.bitcoin
 
 
@@ -30,7 +30,7 @@ RUN set -ex \
   && rm *.tar.gz *.asc \
   && rm -rf /opt/bitcoin-${BITCOIN_VERSION}/bin/bitcoin-qt \
   && mv -v /opt/bitcoin-*/bin/* /usr/bin/
-   
+
 COPY rustup.sh /usr/local/bin/rustup.sh
 COPY ord-install.sh /usr/local/bin/ord-install.sh
 RUN rustup.sh -y
