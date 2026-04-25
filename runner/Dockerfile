@@ -1,4 +1,6 @@
 FROM ghcr.io/actions/actions-runner:latest
+LABEL DAGGER_VERSION=v0.20.6
+ENV DAGGER_VERSION=v0.20.6
 USER root
 COPY dagger.sh /tmp/
 RUN apt-get update -y \
