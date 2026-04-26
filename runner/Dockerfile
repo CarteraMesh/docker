@@ -13,6 +13,5 @@ USER runner
 ENV PATH=/home/runner/.bun/bin/:/home/runner/externals/node24/bin:$PATH
 ENV FORCE_JAVASCRIPT_ACTIONS_TO_NODE24=true
 COPY bun.sh .
-RUN bash bun.sh && rm bun.sh &&  bun --version && node --version && nvchecker --version && dagger version
-RUN RUN mkdir .ssh
+RUN mkdir -p .ssh && bash bun.sh && rm bun.sh &&  bun --version && node --version && nvchecker --version && dagger version
 COPY known_hosts .ssh/known_hosts
