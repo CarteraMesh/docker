@@ -17,7 +17,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        image: [runner, aur-builder]
+        image: [aur-builder, ubuntu]
     name: ${{ matrix.image }}
     runs-on: ubuntu-latest
     # runs-on: ubicloud-standard-2
