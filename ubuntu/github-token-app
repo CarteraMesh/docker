@@ -1,0 +1,31 @@
+#!/usr/bin/env bun
+import { createSign } from 'node:crypto';
+
+const { GH_APP_CLIENT_ID, GH_APP_PRIVATE_KEY, GH_APP_INSTALLATION_ID } = process.env;
+
+function jwt(clientId: string, pem: string): string {
+  const b64url = (obj: object) => Buffer.from(JSON.stringify(obj)).toString('base64url');
+
+  const now = Math.floor(Date.now() / 1000);
+  const header = b64url({ alg: 'RS256', typ: 'JWT' });
+  const payload = b64url({ iat: now - 60, exp: now + 600, iss: clientId });
+  const sig = createSign('RSA-SHA256').update(`${header}.${payload}`).sign(pem, 'base64url');
+
+  return `${header}.${payload}.${sig}`;
+}
+
+const gh = (url: string, token: string, bearer = false) =>
+  fetch(url, {
+    method: 'POST',
+    headers: { Authorization: `${bearer ? 'Bearer' : 'token'} ${token}`, Accept: 'application/vnd.github+json' },
+  }).then((r) => r.json()) as Promise<{ token: string }>;
+
+// Round trip 1: JWT -> installation token
+const appJwt = jwt(GH_APP_CLIENT_ID!, GH_APP_PRIVATE_KEY!);
+const { token: installToken } = await gh(
+  `https://api.github.com/app/installations/${GH_APP_INSTALLATION_ID}/access_tokens`,
+  appJwt,
+  true,
+);
+
+console.log(installToken);

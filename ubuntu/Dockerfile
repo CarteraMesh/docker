@@ -1,7 +1,6 @@
 FROM ubuntu:26.04
 ENV DEBIAN_FRONTEND=noninteractive
 ENV BUN_INSTALL=/usr/local
-# ENV PATH=/usr/local/bun/bin:$PATH
 COPY *.sh /tmp/
 RUN apt-get update -y && apt-get install -y curl zip \
   && curl -o /usr/share/keyrings/githubcli-archive-keyring.gpg -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg  \
@@ -12,6 +11,8 @@ RUN apt-get update -y && apt-get install -y curl zip \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
   && node --version && npm --version && bun --version && gh version
+
+COPY github-token-app /usr/local/bin/github-token-app
 
 
 
