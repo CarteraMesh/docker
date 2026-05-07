@@ -1,11 +1,20 @@
 #!/usr/bin/env bun
 import { createSign } from 'node:crypto';
 
-const { GH_APP_CLIENT_ID, GH_APP_PRIVATE_KEY, GH_APP_INSTALLATION_ID } = process.env;
+const { GITHUB_APP_CLIENT_ID, GITHUB_APP_PRIVATE_KEY, GITHUB_APP_INSTALL_ID } = process.env;
+
+if (!GITHUB_APP_CLIENT_ID) {
+  throw new Error("GITHUB_APP_CLIENT_ID not defined")
+}
+if (!GITHUB_APP_PRIVATE_KEY) {
+  throw new Error("GITHUB_APP_PRIVATE_KEY_B64 not defined")
+}
+if (!GITHUB_APP_INSTALL_ID) {
+  throw new Error("GITHUB_APP_INSTALL_ID not defined")
+}
 
 function jwt(clientId: string, pem: string): string {
   const b64url = (obj: object) => Buffer.from(JSON.stringify(obj)).toString('base64url');
-
   const now = Math.floor(Date.now() / 1000);
   const header = b64url({ alg: 'RS256', typ: 'JWT' });
   const payload = b64url({ iat: now - 60, exp: now + 600, iss: clientId });
@@ -14,18 +23,27 @@ function jwt(clientId: string, pem: string): string {
   return `${header}.${payload}.${sig}`;
 }
 
-const gh = (url: string, token: string, bearer = false) =>
-  fetch(url, {
+async function gh(url: string, token: string): Promise<Record<string, string>>  {
+  return await fetch(url, {
     method: 'POST',
-    headers: { Authorization: `${bearer ? 'Bearer' : 'token'} ${token}`, Accept: 'application/vnd.github+json' },
-  }).then((r) => r.json()) as Promise<{ token: string }>;
+    headers: {
+       Authorization: `Bearer ${token}`,
+       Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+  },
+  }).then((r) => r.json())
+}
 
-// Round trip 1: JWT -> installation token
-const appJwt = jwt(GH_APP_CLIENT_ID!, GH_APP_PRIVATE_KEY!);
-const { token: installToken } = await gh(
-  `https://api.github.com/app/installations/${GH_APP_INSTALLATION_ID}/access_tokens`,
+const pem = Buffer.from(GITHUB_APP_PRIVATE_KEY, "base64").toString("utf8");
+const appJwt = jwt(GITHUB_APP_CLIENT_ID!, pem);
+const resp = await gh(
+  `https://api.github.com/app/installations/${GITHUB_APP_INSTALL_ID}/access_tokens`,
   appJwt,
-  true,
 );
 
-console.log(installToken);
+if (!resp.token) {
+  throw new Error(`token not issued: ${JSON.stringify(resp)}`)
+}
+console.log(resp.token)
+
+
