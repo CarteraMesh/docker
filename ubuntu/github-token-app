@@ -34,6 +34,7 @@ async function gh(url: string, token: string): Promise<Record<string, string>>  
   }).then((r) => r.json())
 }
 
+try {
 const pem = Buffer.from(GITHUB_APP_PRIVATE_KEY, "base64").toString("utf8");
 const appJwt = jwt(GITHUB_APP_CLIENT_ID!, pem);
 const resp = await gh(
@@ -46,4 +47,7 @@ if (!resp.token) {
 }
 console.log(resp.token)
 
-
+} catch(e) {
+  console.error(`${e}`)
+  process.exit(1)
+}
